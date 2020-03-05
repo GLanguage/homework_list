@@ -6,6 +6,7 @@
 # include <string>
 # include <vector>
 # include <algorithm>
+# include <cstring>
 
 using namespace std;
 
@@ -33,32 +34,24 @@ const string LIST_HELP_STR = "\n"
 "\033[1mHomework List: Option \'list\' Help\033[0m\n"
 "\n"
 "\033[1mUsage:\033[0m\n"
-"homework list ( all | <subject_name> )\n"
-"where  <subject_name> is the name of the subject you want to list.\n"
-"\n";
-
-const string SHOW_HELP_STR = "\n"
-"\033[1mHomework List: Option \'show\' Help\033[0m\n"
-"\n"
-"\033[1mUsage:\033[0m\n"
-"homework show ( subject | item )\n"
-"The subject name and/or the item number will be needed later.\n"
+"homework list all\n"
+"homework list <subject_name_1>[ <subject_name_2>[ ...]]\n"
 "\n";
 
 const string APPEND_HELP_STR = "\n"
 "\033[1mHomework List: Option \'append\' Help\033[0m\n"
 "\n"
 "\033[1mUsage:\033[0m\n"
-"homework append ( subject | item )\n"
-"The subject name and/or the item description will be needed later.\n"
+"homework append subject <subject_name_1>[ <subject_name_2>[ ...]]\n"
+"homework append item <subject_name> (Item description will be needed later) \n"
 "\n";
 
 const string REMOVE_HELP_STR = "\n"
 "\033[1mHomework List: Option \'remove\' Help\033[0m\n"
 "\n"
 "\033[1mUsage:\033[0m\n"
-"homework remove ( subject | item )\n"
-"The subject name and/or the item number will be needed later.\n"
+"homework remove subject <subject_name_1>[ <subject_name_2>[ ...]]\n"
+"homework remove item <subject_name> <item_number_1>[ <item_number_2>[ ...]]\n"
 "\n";
 
 void help(int cont) {
@@ -69,13 +62,10 @@ void help(int cont) {
 		case 1: // List Help
 			cout << LIST_HELP_STR;
 			break;
-		case 2: // Show Help
-			cout << SHOW_HELP_STR;
-			break;
-		case 3: // Append Help
+		case 2: // Append Help
 			cout << APPEND_HELP_STR;
 			break;
-		case 4: // Remove Help
+		case 3: // Remove Help
 			cout << REMOVE_HELP_STR;
 			break;
 		default:
@@ -145,10 +135,11 @@ void listhmw(string mode) {
 		for (i = subj.itemList.begin(); i != subj.itemList.end(); ++i) {
 			cout << i - subj.itemList.begin() + 1 << ". " << (*i).desc << endl;
 		}
+		cout << endl;
 	}
 }
 
-void showhmw(string mode) {
+void appendhmw(string mode, string subjname) {
 	ifstream in;
 	bool flag = safe_open(in);
 	if (!flag) return;
@@ -156,42 +147,6 @@ void showhmw(string mode) {
 	rdinfo(in, subjList);
 	in.close();
 	if (mode == "subject") {
-		cout << "The subject name: ";
-		string subjname;
-		cin >> subjname;
-		vector<Subject>::iterator isubj = safe_find(subjList.begin(), subjList.end(), subjname);
-		if (isubj == subjList.end()) return;
-		Subject subj = *isubj;
-		cout << "Subject: " << subj.name << " (with " << subj.itemList.size() << " items)" << endl;
-	}
-	else if (mode == "item") {
-		cout << "In subject: ";
-		string subjname;
-		cin >> subjname;
-		vector<Subject>::iterator isubj = safe_find(subjList.begin(), subjList.end(), subjname);
-		if (isubj == subjList.end()) return;
-		Subject subj = *isubj;
-		cout << "The item number: ";
-		int num;
-		cin >> num;
-		if (num > subj.itemList.size()) {
-			cerr << "Invalid Number! " << endl;
-		}
-		cout << (*(subj.itemList.begin() + num - 1)).desc << endl;
-	}
-}
-
-void appendhmw(string mode) {
-	ifstream in;
-	bool flag = safe_open(in);
-	if (!flag) return;
-	vector<Subject> subjList;
-	rdinfo(in, subjList);
-	in.close();
-	if (mode == "subject") {
-		cout << "The subject name: ";
-		string subjname;
-		cin >> subjname;
 		vector<Subject>::iterator isubj = find(subjList.begin(), subjList.end(), subjname);
 		if (isubj != subjList.end()) {
 			cerr << "Subject already exists: " << subjname << endl;
@@ -205,9 +160,6 @@ void appendhmw(string mode) {
 		cout << "Successfully appended subject: " << subjname << endl;
 	}
 	else if (mode == "item") {
-		cout << "Append to subject: ";
-		string subjname;
-		cin >> subjname;
 		vector<Subject>::iterator isubj = safe_find(subjList.begin(), subjList.end(), subjname);
 		if (isubj == subjList.end()) return;
 		Subject &subj = *isubj;
@@ -223,7 +175,7 @@ void appendhmw(string mode) {
 	}
 }
 
-void removehmw(string mode) {
+void removehmw(string mode, string subjname, int num = 0) {
 	ifstream in;
 	bool flag = safe_open(in);
 	if (!flag) return;
@@ -231,9 +183,6 @@ void removehmw(string mode) {
 	rdinfo(in, subjList);
 	in.close();
 	if (mode == "subject") {
-		cout << "The subject name: ";
-		string subjname;
-		cin >> subjname;
 		vector<Subject>::iterator isubj = safe_find(subjList.begin(), subjList.end(), subjname);
 		if (isubj == subjList.end()) return;
 		subjList.erase(isubj);
@@ -244,15 +193,9 @@ void removehmw(string mode) {
 		cout << "Successfully removed subject: " << subjname << endl;
 	}
 	else if (mode == "item") {
-		cout << "In subject: ";
-		string subjname;
-		cin >> subjname;
 		vector<Subject>::iterator isubj = safe_find(subjList.begin(), subjList.end(), subjname);
 		if (isubj == subjList.end()) return;
 		Subject &subj = *isubj;
-		cout << "The item number: ";
-		int num;
-		cin >> num;
 		if (num > subj.itemList.size()) {
 			cerr << "Invalid Number! " << endl;
 		}
@@ -282,50 +225,71 @@ void execute(int argc, string argv[]) {
 				help(1);
 			}
 			else {
-				listhmw(argv[2]);
+				if (argv[2] == "all") {
+					listhmw("all");
+				}
+				else {
+					for (int i = 2; i < argc; ++i) {
+						listhmw(argv[i]);
+					}
+				}
 			}
 		}
 		else {
 			help(1);
 		}
 	}
-	else if (argv[1] == "show") {
+	else if (argv[1] == "append") {
 		if (argc >= 3) {
 			if (argv[2] == "help") {
 				help(2);
 			}
 			else {
-				showhmw(argv[2]);
+				if (argv[2] == "subject") {
+					for (int i = 3; i < argc; ++i) {
+						appendhmw("subject", argv[i]);
+					}
+				}
+				else if (argv[2] == "item") {
+					appendhmw("item", argv[3]);
+				}
+				else {
+					help(2);
+				}
 			}
 		}
 		else {
 			help(2);
 		}
 	}
-	else if (argv[1] == "append") {
+	else if (argv[1] == "remove") {
 		if (argc >= 3) {
 			if (argv[2] == "help") {
 				help(3);
 			}
 			else {
-				appendhmw(argv[2]);
+				if (argv[2] == "subject") {
+					for (int i = 3; i < argc; ++i) {
+						removehmw("subject", argv[i]);
+					}
+				}
+				else if (argv[2] == "item") {
+					int numlist[argc];
+					for (int i = 4; i < argc; ++i) {
+						numlist[i] = stoi(argv[i]);
+					}
+					sort(numlist + 4, numlist + argc);
+					for (int i = 4; i < argc; ++i) {
+						removehmw("item", argv[3], numlist[i] - (i - 4));
+					}
+				}
+				else {
+					help(3);
+				}
 			}
 		}
 		else {
 			help(3);
-		}
-	}
-	else if (argv[1] == "remove") {
-		if (argc >= 3) {
-			if (argv[2] == "help") {
-				help(4);
-			}
-			else {
-				removehmw(argv[2]);
-			}
-		}
-		else {
-			help(4);
 		}
 	}
 	else {
