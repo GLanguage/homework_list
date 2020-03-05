@@ -1,5 +1,6 @@
 # homework_list
 A list of homework :P
+[CHANGELOG](CHANGELOG.md)
 
 ## Usage
 *NOTE: Unix-like OS only!*  
